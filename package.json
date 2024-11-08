@@ -14,7 +14,8 @@
     "input-multi-tags": "file:",
     "lodash": "^4.17.21",
     "vite-project": "file:",
-    "vue": "^3.2.37"
+    "vue": "^3.2.37",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.13",

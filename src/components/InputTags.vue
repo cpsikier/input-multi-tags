@@ -8,23 +8,29 @@
     }"
     class="vue-input-tag-wrapper"
   >
-    <span
-      v-for="(tag, index) in state.innerTags"
-      :key="index"
-      class="input-tag-item text-ellipsis"
+    <draggable
+      v-model="inputTags"
+      item-key="index"
+      animation="300"
+      :disabled="!props.draggable"
+      @update="draggableUpdate"
     >
-      <!-- 标签内容 -->
-      <span class="tag-text">{{ tag }}</span>
-      <!-- 关闭标签图标 -->
-      <span
-        v-if="!readOnly"
-        @click.prevent.stop="remove(index)"
-        class="tag-close"
-      >
-        <el-icon v-if="!hasRemoveIconSlot"><Close /></el-icon>
-        <slot name="remove-icon" />
-      </span>
-    </span>
+      <template #item="{ element, index }">
+        <span :key="index" class="input-tag-item text-ellipsis">
+          <!-- 标签内容 -->
+          <span class="tag-text">{{ element }}</span>
+          <!-- 关闭标签图标 -->
+          <span
+            v-if="!readOnly"
+            @click.prevent.stop="remove(index)"
+            class="tag-close"
+          >
+            <el-icon v-if="!hasRemoveIconSlot"><Close /></el-icon>
+            <slot name="remove-icon" />
+          </span>
+        </span>
+      </template>
+    </draggable>
     <input
       ref="inputRef"
       v-if="!readOnly && !isLimit"
@@ -44,6 +50,7 @@ import _ from 'lodash'
 import { onMounted, ref, reactive, computed, PropType, useSlots } from 'vue'
 import { Close } from '@element-plus/icons-vue'
 import { ElIcon, ElMessage } from 'element-plus'
+import draggable from 'vuedraggable'
 
 const inputRef = ref()
 
@@ -53,6 +60,7 @@ type ObjType = {
 const slots = useSlots()
 const hasRemoveIconSlot = !!slots['remove-icon']
 type ValidateType = string | ((...args: any[]) => any) | Record<string, any>
+const modelValue = defineModel()
 const props = defineProps({
   // 传入的数组内容
   value: {
@@ -98,23 +106,28 @@ const props = defineProps({
   beforeAdding: {
     type: Function,
   },
+  // 拖拽是否开启,默认关闭
+  draggable: {
+    type: Boolean,
+    default: false,
+  },
 })
+const inputTags = ref([...props.value])
 const emit = defineEmits(['updateInputTags'])
 const state = reactive({
   newTag: '',
-  innerTags: [...props.value],
   isInputActive: false,
 })
 const isLimit = computed(
-  () => props.limit > 0 && state.innerTags.length === Number(props.limit)
+  () => props.limit > 0 && inputTags.value?.length === Number(props.limit)
 )
+
 // 组件内置的验证：邮箱、phone
 const validators: ObjType = {
   email: new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
   phone: new RegExp(/^1[3-9]\d{9}$/),
 }
 onMounted(() => {
-  state.innerTags = [...props.value]
   // 初始化时触发一次更新
   updateTags()
 })
@@ -160,9 +173,9 @@ async function addNew(e: any) {
   if (
     tag &&
     isValid &&
-    (props.allowDuplicate || state.innerTags.indexOf(tag) === -1)
+    (props.allowDuplicate || inputTags.value?.indexOf(tag) === -1)
   ) {
-    state.innerTags.push(tag)
+    inputTags.value?.push(tag)
     state.newTag = ''
     updateTags()
   }
@@ -192,7 +205,7 @@ function validateIfNeeded(tagValue: string) {
   return true
 }
 function remove(index: number) {
-  state.innerTags.splice(index, 1)
+  inputTags.value?.splice(index, 1)
   updateTags()
 }
 
@@ -200,12 +213,16 @@ function removeLastTag() {
   if (state.newTag) {
     return
   }
-  state.innerTags.pop()
+  inputTags.value?.pop()
   updateTags()
 }
 // 更新内容
 function updateTags() {
-  emit('updateInputTags', state.innerTags)
+  emit('updateInputTags', inputTags.value)
+}
+// 元素位置改变时更新内容
+function draggableUpdate(e: any) {
+  updateTags()
 }
 </script>
 <style scoped lang="scss">
@@ -218,7 +235,7 @@ $tag-background-color: var(--el-color-primary-light-9);
   height: 100%;
   background-color: #fff;
   border: 1px solid #ccc;
-  cursor: text;
+  cursor: pointer;
   text-align: left;
   -webkit-appearance: textfield;
   padding: 4px;
@@ -231,16 +248,17 @@ $tag-background-color: var(--el-color-primary-light-9);
 
 .input-tag-item {
   height: 24px;
-  background-color: $tag-background-color;
-  border-radius: 2px;
-  color: $tag-color;
-  border: 1px solid $tag-border-color;
-  border-radius: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 400;
+  margin-right: 4px;
   padding: 0 9px;
+  font-weight: 400;
+  border: 1px solid $tag-border-color;
+  border-radius: 2px;
+  border-radius: 4px;
+  color: $tag-color;
+  background-color: $tag-background-color;
   box-sizing: border-box;
 }
 .tag-text {
