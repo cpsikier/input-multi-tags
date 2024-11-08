@@ -40,9 +40,10 @@
 </template>
 
 <script setup lang="ts">
+import _ from 'lodash'
 import { onMounted, ref, reactive, computed, PropType, useSlots } from 'vue'
 import { Close } from '@element-plus/icons-vue'
-import { ElIcon } from 'element-plus'
+import { ElIcon, ElMessage } from 'element-plus'
 
 const inputRef = ref()
 
@@ -68,7 +69,7 @@ const props = defineProps({
     default: false,
   },
   // 添加标签的快捷键
-  addTagOnWays: {
+  addTagWays: {
     type: Array,
     default: function () {
       return ['Enter', 'Tab']
@@ -89,7 +90,7 @@ const props = defineProps({
     default: -1,
   },
   // 内容是否可以重复
-  allowDuplicates: {
+  allowDuplicate: {
     type: Boolean,
     default: false,
   },
@@ -134,7 +135,7 @@ function handleInputBlur(e: FocusEvent) {
 }
 async function addNew(e: any) {
   // 检测当前按键是否是添加标签的快捷键，默认是 ['Enter', 'Tab']
-  const keyShouldAddTag = e && props.addTagOnWays.indexOf(e.code) !== -1
+  const keyShouldAddTag = e && props.addTagWays.indexOf(e.code) !== -1
   // 事件类型是否为 blur
   const typeIsNotBlur = e && e.type !== 'blur'
   // 不添加的条件为：1. 不是添加标签的快捷键，2. 不是 blur 事件，3. 当前标签数量已经达到限制。
@@ -143,6 +144,11 @@ async function addNew(e: any) {
     isLimit.value
   ) {
     return
+  }
+  // 检测是否为空
+  if (_.isEmpty(state.newTag.trim())) {
+    state.newTag = ''
+    return ElMessage.warning('请输入内容')
   }
   // 添加前是否需要规范化
   const tag = props.beforeAdding
@@ -154,7 +160,7 @@ async function addNew(e: any) {
   if (
     tag &&
     isValid &&
-    (props.allowDuplicates || state.innerTags.indexOf(tag) === -1)
+    (props.allowDuplicate || state.innerTags.indexOf(tag) === -1)
   ) {
     state.innerTags.push(tag)
     state.newTag = ''

@@ -12,10 +12,12 @@
     "@element-plus/icons-vue": "^2.3.1",
     "element-plus": "^2.8.7",
     "input-multi-tags": "file:",
+    "lodash": "^4.17.21",
     "vite-project": "file:",
     "vue": "^3.2.37"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.13",
     "@vitejs/plugin-vue": "^3.1.0",
     "sass": "^1.80.6",
     "typescript": "^4.6.4",
