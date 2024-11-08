@@ -13,6 +13,8 @@ A tag input box component based on Vue3
 - [ ] 修改
 - [x] 拖拽移动
 
+![alt text](image.png)
+
 ## Usage
 
 ```
@@ -59,3 +61,9 @@ function getInputTags(val: string[]) {
 | 方法名          | 说明                                    |
 | --------------- | --------------------------------------- |
 | updateInputTags | 更新输入框内容,将输入框的内容传给父组件 |
+
+## Slots
+
+| 名称        | 说明           |
+| ----------- | -------------- |
+| remove-icon | 自定义删除图标 |
